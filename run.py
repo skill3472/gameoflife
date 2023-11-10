@@ -6,7 +6,6 @@ resoultion = {
     "height": 800
 }
 
-rect_size = 40;
 columns = 20;
 rows = 20;
 grid_w = resoultion["width"] // columns
@@ -20,28 +19,41 @@ class Cell:
     def __init__(self, i, j, alive):
         self.x = i
         self.y = j
-        self.rect_size = 40
         self.alive = alive
-        self.neighbours = []
+        self.neighboursCount = 0
+        # if self.x == 0 or self.x == rows - 1 or self.y == 0 or self.y == columns - 1:
+        #     self.is_border = True
+        #     self.alive = False
+        # else:
+        #     self.is_border = False
 
     def draw(self, window, color):
         pygame.draw.rect(window, color, (self.x * grid_w, self.y * grid_h, grid_w - gap, grid_w - gap))
 
-    def getNeighbours(self):
-        pass
+    def getNeighboursCount(self):
+        self.neighboursCount = 0
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+
+                self.col = (self.x+i + columns) % columns
+                self.row = (self.y+j + rows) % rows 
+
+                self.neighboursCount += int(grid_array[self.col][self.row].alive)
+        self.neighboursCount -= int(self.alive)
+        return self.neighboursCount
 
 def arrays_setup(rows, cols):
     grid = []
-    for i in range(cols):
+    for i in range(rows):
         arr = []
-        for j in range(rows):
+        for j in range(cols):
             arr.append(Cell(i, j, bool(random.getrandbits(1))))
         grid.append(arr)
     return grid
 
 def draw_grid(array, screen):
-    for i in range(columns):
-        for j in range(rows):
+    for i in range(rows):
+        for j in range(columns):
             box = array[i][j]
             if box.alive:
                 color = ALIVE_COLOR
@@ -49,7 +61,27 @@ def draw_grid(array, screen):
                 color = DEAD_COLOR
             box.draw(screen, color)
 
-grid_array = arrays_setup(20, 20)
+def simulate(new_grid, old_grid):
+    for i in range(rows):
+        for j in range(columns):
+            print(i, j)
+            count = old_grid[i][j].getNeighboursCount()
+            #print(f"x:{i},y:{j}, n:{count}") # DEBUG
+            if old_grid[i][j].alive: # IF IS ALIVE
+                if count < 2 or count > 3:
+                    new_grid[i][j] = Cell(i, j, False)
+                else:
+                    new_grid[i][j] = old_grid[i][j]
+            else: # IF WAS DEAD
+                if count == 3:
+                    new_grid[i][j] = Cell(i, j, True)
+                else:
+                    new_grid[i][j] = old_grid[i][j]
+    return new_grid
+
+
+grid_array = arrays_setup(columns, rows)
+new_grid_array = grid_array
 
 # pygame setup
 pygame.init()
@@ -63,11 +95,12 @@ while running:
             running = False
 
     screen.fill("gray")
-
-    draw_grid(grid_array, screen)
+    new_grid_array = simulate(new_grid_array, grid_array)
+    grid_array = new_grid_array
+    draw_grid(new_grid_array, screen)
 
     pygame.display.flip()
 
-    clock.tick(60)
+    clock.tick(10)
 
 pygame.quit()
