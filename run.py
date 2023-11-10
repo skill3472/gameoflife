@@ -1,13 +1,20 @@
 import pygame
 import random
+import sys
 
 resoultion = {
     "width": 800,
     "height": 800
 }
 
-columns = 20;
-rows = 20;
+args = sys.argv[1]
+if args != None:
+    size = int(args)
+else:
+    size = 20
+
+columns = size
+rows = size
 grid_w = resoultion["width"] // columns
 grid_h = resoultion["height"] // rows
 gap = 1
@@ -64,7 +71,7 @@ def draw_grid(array, screen):
 def simulate(new_grid, old_grid):
     for i in range(rows):
         for j in range(columns):
-            print(i, j)
+            #print(i, j) # DEBUG
             count = old_grid[i][j].getNeighboursCount()
             #print(f"x:{i},y:{j}, n:{count}") # DEBUG
             if old_grid[i][j].alive: # IF IS ALIVE
